@@ -47,8 +47,9 @@ void *routine(void *string) {
     //  pthread_mutex_lock(&mutex);
     // mails++;
     //    pthread_mutex_unlock(&mutex);
-    int line = findFirstOccur((char *)string, "abc");
-    return (void *)&line;
+    int *line = malloc(sizeof(int));
+    *line = findFirstOccur((char *)string, "abc");
+    return (void *)line;
 }
 
 int main(int argc, char *argv[]) {
