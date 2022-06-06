@@ -1,0 +1,3 @@
+aklsdjfofj found on line 3 in thread 3 on time 0.002050 and written in file on time 0.003213
+abc found on line 1 in thread 1 on time 0.002675 and written in file on time 0.003325
+mine found on line 3 in thread 3 on time 0.002088 and written in file on time 0.003331
