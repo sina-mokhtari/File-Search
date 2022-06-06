@@ -230,17 +230,18 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < 4; i++)
         if (pthread_join(threads[i], NULL) != 0) perror("thread fail!");
 
+    fclose(fopen("results.txt", "w"));
+    f = fopen("results.txt", "a");
     for (int i = 0; i < wordsCount; i++)
-        if (results[i].line != __INT_MAX__)
-            printf("%s found on line %d in thread %d on time %lf\n", words[i],
-                   results[i].line, results[i].thread,
-                   (double)(results[i].time - startTime) / CLOCKS_PER_SEC);
+        if (results[i].line != __INT_MAX__) /* Write content to file */
+            fprintf(f,
+                    "%s found on line %d in thread %d on time %lf and written "
+                    "in file on time %lf\n",
+                    words[i], results[i].line, results[i].thread,
+                    (double)(results[i].time - startTime) / CLOCKS_PER_SEC,
+                    (double)(clock() - startTime) / CLOCKS_PER_SEC);
+    fclose(f);
 
-    // printf("%d\n", *returnValue);
-    // printf("thread id: %ld\n", syscall(__NR_gettid));
-    //  if (pthread_join(p4, NULL) != 0) {
-    //      return 8;
-    //  }
     pthread_mutex_destroy(&mutex);
     //  printf("Number of mails: %d\n", mails);
     return 0;
