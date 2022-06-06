@@ -1,3 +1,4 @@
-aklsdjfofj found on line 3 in thread 3 on time 0.002050 and written in file on time 0.003213
-abc found on line 1 in thread 1 on time 0.002675 and written in file on time 0.003325
-mine found on line 3 in thread 3 on time 0.002088 and written in file on time 0.003331
+Semaphore method
+"visual" found on line 4 in thread 2 on time 0.000512 and written in file on time 0.000664
+"printing" found on line 2 in thread 1 on time 0.000381 and written in file on time 0.000673
+"randomly" found on line 11 in thread 4 on time 0.000494 and written in file on time 0.000675
