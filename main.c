@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 /*
 int occur() {
@@ -60,8 +61,23 @@ int mails = 0;
 pthread_mutex_t mutex;
 pthread_t threads[4];
 char *string;
+char words[100][25];
 int length;
+int wordsCount = 0;
 int linesCount = 1;
+clock_t startTime;
+
+void getWords() {
+    FILE *fptr = NULL;
+    int i = 0;
+
+    fptr = fopen("words.txt", "r");
+    while (fgets(words[i], 25, fptr)) {
+        words[i][strlen(words[i]) - 1] = '\0';
+        i++;
+    }
+    wordsCount = i;
+}
 
 int findFirstOccur(char *str, char *wrd) {
     char word[25];  // string[131072];
@@ -114,52 +130,55 @@ int findFirstOccur(char *str, char *wrd) {
 }
 
 void *routine1(void *args) {
-    // printf("shit");
-    char *word = "abc";
     int *line = malloc(sizeof(int));
     char quarterStr[1000];
 
-    int threadNumber = 5;
+    int threadNumber;
     if (pthread_self() == threads[0]) threadNumber = 1;
     if (pthread_self() == threads[1]) threadNumber = 2;
     if (pthread_self() == threads[2]) threadNumber = 3;
     if (pthread_self() == threads[3]) threadNumber = 4;
+    /*
+        int quarterSize = length / 4;
+        switch (threadNumber) {
+            case 1:
+                strncpy(quarterStr, string, quarterSize);
+                quarterStr[quarterSize] = '\0';
+                break;
+            case 2:
+                strncpy(quarterStr, string + quarterSize, quarterSize);
+                quarterStr[quarterSize] = '\0';
+                break;
+            case 3:
+                strncpy(quarterStr, string + quarterSize * 2, quarterSize);
+                quarterStr[quarterSize] = '\0';
+                break;
+            case 4:
+                strncpy(quarterStr, string + quarterSize * 3,
+                        length - quarterSize * 3);
+                quarterStr[length - quarterSize * 3] = '\0';
+                break;
+            default:
+                printf("shit");
+                return NULL;
+                break;
+        }*/
 
-    int quarterSize = length / 4;
-    switch (threadNumber) {
-        case 1:
-            strncpy(quarterStr, string, quarterSize);
-            quarterStr[quarterSize] = '\0';
-            break;
-        case 2:
-            strncpy(quarterStr, string + quarterSize, quarterSize);
-            quarterStr[quarterSize] = '\0';
-            break;
-        case 3:
-            strncpy(quarterStr, string + quarterSize * 2, quarterSize);
-            quarterStr[quarterSize] = '\0';
-            break;
-        case 4:
-            strncpy(quarterStr, string + quarterSize * 3,
-                    length - quarterSize * 3);
-            quarterStr[length - quarterSize * 3] = '\0';
-            break;
-        default:
-            printf("shit");
-            return NULL;
-            break;
-    }
-    *line = findFirstOccur(quarterStr, word);
+    for (int i = 0; i < wordsCount; i++) {
+        *line = findFirstOccur(quarterStr, words[i]);
 
-    if (*line != 0) {
-        // *line += linesCount / 4 * (threadNumber - 1);
-        printf("%s word found on line %d in thread %d\n", word, *line,
-               threadNumber);
+        if (*line != 0) {
+            printf("%s found on line %d in thread %d on time %lf\n", words[i],
+                   *line, threadNumber,
+                   (double)(clock() - startTime) / CLOCKS_PER_SEC);
+        }
     }
+
     // return (void *)line;
 }
 
 int main(int argc, char *argv[]) {
+    startTime = clock();
     FILE *f = fopen("text.txt", "r");
     if (f) {
         fseek(f, 0, SEEK_END);
@@ -179,6 +198,8 @@ int main(int argc, char *argv[]) {
             linesCount = linesCount + 1;
 
     fclose(f);
+
+    getWords();
     // int quarterSize = length / 4;
 
     int *returnValue;
