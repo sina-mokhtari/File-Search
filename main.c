@@ -6,6 +6,9 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
+#define WORDS_BUFFER 100
+
 /*
 int occur() {
     char wrd[256], buffer[256];
@@ -61,11 +64,19 @@ int mails = 0;
 pthread_mutex_t mutex;
 pthread_t threads[4];
 char *string;
-char words[100][25];
+char words[WORDS_BUFFER][25];
 int length;
 int wordsCount = 0;
 int linesCount = 1;
 clock_t startTime;
+
+typedef struct {
+    int line;
+    int thread;
+    clock_t time;
+} result;
+
+result results[WORDS_BUFFER] = {[0 ... WORDS_BUFFER - 1] = {__INT_MAX__, 0, 0}};
 
 void getWords() {
     FILE *fptr = NULL;
@@ -130,7 +141,7 @@ int findFirstOccur(char *str, char *wrd) {
 }
 
 void *routine1(void *args) {
-    int *line = malloc(sizeof(int));
+    int *myLine = malloc(sizeof(int));
     char quarterStr[1000];
 
     int threadNumber;
@@ -165,12 +176,16 @@ void *routine1(void *args) {
         }*/
 
     for (int i = 0; i < wordsCount; i++) {
-        *line = findFirstOccur(quarterStr, words[i]);
+        *myLine = findFirstOccur(quarterStr, words[i]);
 
-        if (*line != 0) {
-            printf("%s found on line %d in thread %d on time %lf\n", words[i],
-                   *line, threadNumber,
-                   (double)(clock() - startTime) / CLOCKS_PER_SEC);
+        if (*myLine != 0) {
+            pthread_mutex_lock(&mutex);
+            if (results[i].line > *myLine) {
+                results[i].line = *myLine;
+                results[i].thread = threadNumber;
+                results[i].time = clock();
+            }
+            pthread_mutex_unlock(&mutex);
         }
     }
 
@@ -203,6 +218,7 @@ int main(int argc, char *argv[]) {
     // int quarterSize = length / 4;
 
     int *returnValue;
+    pthread_mutex_init(&mutex, NULL);
 
     for (int i = 0; i < 4; i++)
         if (pthread_create(&threads[i], NULL, &routine1, NULL) != 0) return 1;
@@ -210,17 +226,22 @@ int main(int argc, char *argv[]) {
     // for (int i = 0; i < 4; i++) printf("thread:%ld\n", threads[i]);
 
     // pthread_t p1, p2, p3, p4;
-    // pthread_mutex_init(&mutex, NULL);
 
     for (int i = 0; i < 4; i++)
         if (pthread_join(threads[i], NULL) != 0) perror("thread fail!");
+
+    for (int i = 0; i < wordsCount; i++)
+        if (results[i].line != __INT_MAX__)
+            printf("%s found on line %d in thread %d on time %lf\n", words[i],
+                   results[i].line, results[i].thread,
+                   (double)(results[i].time - startTime) / CLOCKS_PER_SEC);
 
     // printf("%d\n", *returnValue);
     // printf("thread id: %ld\n", syscall(__NR_gettid));
     //  if (pthread_join(p4, NULL) != 0) {
     //      return 8;
     //  }
-    //  pthread_mutex_destroy(&mutex);
+    pthread_mutex_destroy(&mutex);
     //  printf("Number of mails: %d\n", mails);
     return 0;
 }
