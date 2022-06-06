@@ -9,11 +9,12 @@
 
 #define THREADS_COUNT 4
 #define WORDS_BUFFER 100
+#define WORDS_MAX_SIZE 25
 
 pthread_mutex_t mutex;
 pthread_t threads[THREADS_COUNT];
 char *string;
-char words[WORDS_BUFFER][25];
+char words[WORDS_BUFFER][WORDS_MAX_SIZE];
 int length;
 int wordsCount = 0;
 int linesCount = 1;
@@ -32,7 +33,7 @@ void getWords() {
     int i = 0;
 
     fptr = fopen("words.txt", "r");
-    while (fgets(words[i], 25, fptr)) {
+    while (fgets(words[i], WORDS_MAX_SIZE, fptr)) {
         words[i][strlen(words[i]) - 1] = '\0';
         i++;
     }
@@ -57,7 +58,7 @@ int findFirstOccur(char *wrd) {
     while (string[i] != '\0') {
         line++;
 
-        while (line < (linesCount / 4 * (threadNumber - 1) + 1) &&
+        while (line < (linesCount / THREADS_COUNT * (threadNumber - 1) + 1) &&
                string[i] != '\0')
             while (string[i] != '\0')
                 if (string[i++] == '\n') {
@@ -65,7 +66,9 @@ int findFirstOccur(char *wrd) {
                     break;
                 }
 
-        if (line > (linesCount / 4 * threadNumber) && threadNumber < 4) break;
+        if (line > (linesCount / THREADS_COUNT * threadNumber) &&
+            threadNumber < THREADS_COUNT)
+            break;
 
         while (string[i] != '\n' && string[i] != '\0') {
             j = 0;
@@ -146,16 +149,16 @@ int main(int argc, char *argv[]) {
 
     fclose(fopen("results.txt", "w"));
     f = fopen("results.txt", "a");
-    fprintf(f, "Mutex method\n");
+    fprintf(f, "Mutex method with %d threads\n", THREADS_COUNT);
     for (int i = 0; i < wordsCount; i++)
         if (results[i].line != __INT_MAX__)
-            fprintf(
-                f,
-                "\"%s\" found on line %d in thread %d on time %lf and written "
-                "in file on time %lf\n",
-                words[i], results[i].line, results[i].thread,
-                (double)(results[i].time - startTime) / CLOCKS_PER_SEC,
-                (double)(clock() - startTime) / CLOCKS_PER_SEC);
+            fprintf(f,
+                    "\"%s\" found on line %d in thread %d in %lf seconds and "
+                    "written "
+                    "in file in %lf seconds\n",
+                    words[i], results[i].line, results[i].thread,
+                    (double)(results[i].time - startTime) / CLOCKS_PER_SEC,
+                    (double)(clock() - startTime) / CLOCKS_PER_SEC);
     fclose(f);
 
     pthread_mutex_destroy(&mutex);

@@ -1,4 +1,4 @@
-Semaphore method
-"visual" found on line 4 in thread 2 on time 0.000512 and written in file on time 0.000664
-"printing" found on line 2 in thread 1 on time 0.000381 and written in file on time 0.000673
-"randomly" found on line 11 in thread 4 on time 0.000494 and written in file on time 0.000675
+Semaphore method with 6 threads
+"visual" found on line 4 in thread 2 in 0.000326 seconds and written in file in 0.000757 seconds
+"printing" found on line 2 in thread 1 in 0.000192 seconds and written in file in 0.000773 seconds
+"randomly" found on line 11 in thread 6 in 0.000600 seconds and written in file in 0.000774 seconds
